@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import sys
 import os
 import re
-import commands
+import subprocess
 import time
 from optparse import OptionParser,OptionGroup
 
 import numpy as np
 from Bio.Seq import Seq
 from Bio.SeqUtils import ProtParam
-
 import seqio
 
 def __main():
@@ -297,14 +297,16 @@ def calculate_potential(fasta,strand,outfile):
 	cmd = cmd + app_svm_predict + ' -b 1 -q ' + outfile + '.tmp.2 ' + data_dir + 'cpc2.model ' + outfile + '.tmp.1 &&'
 	cmd = cmd + 'awk -vOFS="\\t" \'{if ($1 == 1){print $2,"coding"} else if ($1 == 0){print $2,"noncoding"}}\' ' + outfile + '.tmp.1 > ' + outfile + '.tmp.2 &&'
 	cmd = cmd + 'paste ' + outfile + '.feat ' + outfile + '.tmp.2 >>' + outfile
-	(exitstatus, outtext) = commands.getstatusoutput(cmd)
+	command = suprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	(outtext, errtext) = command.communicate()
+	exitstatus = command.returncode
 	os.system('rm -f ' + outfile + '.tmp.1 ' + outfile + '.tmp.2')
 	#	subprocess.call("Rscript " + outfile + '.r', shell=True)
 	#except:
 	#	pass
 	if exitstatus == 0:
 		rm_cmd = "rm -f " + outfile + '.feat'
-		commands.getstatusoutput(rm_cmd)
+		subprocess.call(rm_cmd)
 		sys.stderr.write("[INFO] Running Done!\n")
 		return 0
 	else:
